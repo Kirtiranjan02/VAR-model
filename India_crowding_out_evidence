@@ -1,0 +1,28 @@
+# VAR Analysis to check effect of Budget deficit on interest rate, exchange rate and inflation
+# Data from 1960-1988
+# R = Money Market interest Price , CPI = Consumer Price Index, BD = Budget Deficit,
+# DI = Gross Domestic investment gross fixed capital formation, PUT = Private Unrequited transfers
+crowding_out.data = as.data.frame(read.csv("C:/Users/Admin/Desktop/IIT Delhi/Time Series/Replication.csv", header =TRUE,sep = ",", fileEncoding = "UTF-8"))
+
+## Method 1 : OLS 
+crowding_out.data = crowding_out.data %>% mutate(R_1 = lag(crowding_out.data$R),CPI_1 = lag(crowding_out.data$CPI) ,ER_1= lag(crowding_out.data$ER))
+R_1 = lag(crowding_out.data$R)
+CPI_1 = lag(crowding_out.data$CPI) 
+ER_1= lag (crowding_out.data$ER)
+#Interest rate 
+fit_1= lm (R ~ CPI_1 + R_1 + ER_1 + BD + PUT + DI, data=crowding_out.data)
+summary(fit_1)
+#Inflation 
+fit_2 = lm (CPI ~ CPI_1 + R_1 + ER_1 + BD + PUT + DI, data=crowding_out.data)
+summary(fit_2)
+# Exchange Rate
+fit_3 = lm (ER ~ CPI_1 + R_1 + ER_1 + BD + PUT + DI, data=crowding_out.data)
+summary(fit_3)
+
+## Method 2  Use VAR Directly
+#Using VAR
+library(vars)
+x= cbind(crowding_out.data$ER, crowding_out.data$CPI, crowding_out.data$R)
+colnames(x) = c("ER", "CPI","R")
+Var_m= VAR(x, p =1, exogen= data.frame(BD = crowding_out.data$BD, DI= crowding_out.data$DI ,PUT = crowding_out.data$PUT))
+summary(Var_m)
